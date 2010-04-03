@@ -1,0 +1,34 @@
+Serfs
+====
+
+Serfs is a "Simple Embedded Resource File System" for .Net.
+
+Embedded resources are files that are built in to a .Net Assembly whose Build Action Property 
+is set to 'Embedded Resource'. They can be placed in a directory-like structure.
+
+Serfs provides a simple read-only access to such files in a way similar to reading files from
+disk.
+
+e.g. Stream stream = _serfs.OpenRead("files/test.txt")
+
+You can tell Serfs which assemblies to get files from, and which set of files to select. When you
+then try to access files, they appear to be merged into one collection, regardless of the
+assembly they are in. 
+
+If you want to separate files into different logical 'disks', just create separate instances.
+
+Restrictions
+-----------
+Although Serfs uses a traditional 'folder/filename' or 'folder\filename' path convention, embedded 
+resources are actually stored with '.' separators. Also, spaces are stored as '_'. Serfs will try to
+find the correct file, but it might be confused, say, by files "A file" and "A_file".
+
+Contents
+---------
+This repository contains 3 projects:
+
+Serfs : The core Serfs dll.
+
+TestSerfs : Tests for Serfs. Uses Gallio / MbUnit. Can be used as a reference for the API.
+
+ResourcesForSerfsTest : A DLL containing no code, just embedded resources for TestSerfs.

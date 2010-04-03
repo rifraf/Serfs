@@ -7,3 +7,8 @@ CLEAN.include('**/bin/*.pdb')
 CLEAN.include('**/bin')
 
 CLOBBER.include('**/_Resharper.*')
+
+desc "Push to GitHub"
+task :push
+  system "git push origin master"
+end
