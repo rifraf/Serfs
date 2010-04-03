@@ -2,3 +2,9 @@ Serfs.4.5.resharper
 Serfs.4.5.resharper.user
 Serfs.suo
 _ReSharper.Serfs/*
+ResourcesForSerfsTest/bin/
+ResourcesForSerfsTest/obj/
+Serfs/bin/Serfs.pdb
+Serfs/obj/
+TestSerfs/bin/
+TestSerfs/obj/

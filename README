@@ -1,5 +1,5 @@
 Serfs
-====
+=====
 
 Serfs is a "Simple Embedded Resource File System" for .Net.
 
@@ -18,13 +18,13 @@ assembly they are in.
 If you want to separate files into different logical 'disks', just create separate instances.
 
 Restrictions
------------
+------------
 Although Serfs uses a traditional 'folder/filename' or 'folder\filename' path convention, embedded 
 resources are actually stored with '.' separators. Also, spaces are stored as '_'. Serfs will try to
 find the correct file, but it might be confused, say, by files "A file" and "A_file".
 
 Contents
----------
+--------
 This repository contains 3 projects:
 
 Serfs : The core Serfs dll.
