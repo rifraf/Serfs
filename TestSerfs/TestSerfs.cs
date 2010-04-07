@@ -63,6 +63,22 @@ namespace SERFS {
         }
 
         [Test]
+        public void ReadFolderStartingWithNumeric() {
+            using (Stream stream = _serfs.OpenRead("1.2.3/test.txt")) {
+                StreamReader reader = new StreamReader(stream);
+                Assert.AreEqual("A test file in a folder with numerics", reader.ReadLine());
+            }
+        }
+
+        [Test]
+        public void ReadFileStartingWithNumeric() {
+            using (Stream stream = _serfs.OpenRead("A folder with . and spaces/404.txt")) {
+                StreamReader reader = new StreamReader(stream);
+                Assert.AreEqual("This file starts with a numeric", reader.ReadLine());
+            }
+        }
+
+        [Test]
         public void ReadPathUsingBackslash() {
             using (Stream stream = _serfs.OpenRead("A folder with . and spaces\\A file with . and spaces.txt")) {
                 StreamReader reader = new StreamReader(stream);

@@ -49,8 +49,14 @@
   <ItemGroup>
     <EmbeddedResource Include="ExtraTemplates\extratest.txt" />
     <EmbeddedResource Include="MoreTemplates\moretest.txt" />
-    <EmbeddedResource Include="TestTemplates\A folder with . and spaces\A file with . and spaces.txt" />
+    <EmbeddedResource Include="TestTemplates\A folder with . and spaces\404.txt" />
     <EmbeddedResource Include="TestTemplates\test.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestTemplates\A folder with . and spaces\A file with . and spaces.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestTemplates\1.2.3\test.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

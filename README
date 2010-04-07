@@ -17,11 +17,13 @@ assembly they are in.
 
 If you want to separate files into different logical 'disks', just create separate instances.
 
+Paths and file names are case-insensitive.
+
 Restrictions
 ------------
 Although Serfs uses a traditional 'folder/filename' or 'folder\filename' path convention, embedded 
-resources are actually stored with '.' separators. Also, spaces are stored as '_'. Serfs will try to
-find the correct file, but it might be confused, say, by files "A file" and "A_file".
+resources are actually stored with '.' separators. Also, spaces and '-' are stored as '_'. Serfs 
+will try to find the correct file, but it might be confused, say, by files "A file" and "A_file".
 
 Contents
 --------
