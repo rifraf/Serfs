@@ -5,6 +5,7 @@ _ReSharper.Serfs/*
 ResourcesForSerfsTest/bin/
 ResourcesForSerfsTest/obj/
 Serfs/bin/Serfs.pdb
+Serfs/bin/Coverage.Log
 Serfs/obj/
 TestSerfs/bin/
 TestSerfs/obj/
