@@ -1,4 +1,7 @@
+using System;
 using System.IO;
+using System.Reflection;
+using System.Text;
 
 namespace SERFS {
     using MbUnit.Framework;
@@ -108,7 +111,7 @@ namespace SERFS {
 
         [Test]
         public void AdditionalAssembliesAreFound() {
-            _serfs.AddAssembly("ResourcesForSerfsTest", "Files");
+            _serfs.AddAssembly("ResourcesForSerfsTest", "ResourcesForSerfsTest").Mount("Files");
             using (Stream stream = _serfs.OpenRead("HelloSerfs.txt")) {
                 StreamReader reader = new StreamReader(stream);
                 Assert.AreEqual("Hello Serfs!", reader.ReadLine());
@@ -126,7 +129,15 @@ namespace SERFS {
 
         [Test]
         public void AdditionalAssembliesNotFound() {
+            Assert.IsFalse(_serfs.IgnoreMissingAssemblies);
             Assert.IsNull(_serfs.AddAssembly("AnAssemblyThatDoesNotExist"));
+        }
+
+        [Test]
+        public void MissingAssembliesCanBeIgnored() {
+            _serfs.IgnoreMissingAssemblies = true;
+            Assert.IsTrue(_serfs.IgnoreMissingAssemblies);
+            Assert.IsNotNull(_serfs.AddAssembly("AnAssemblyThatDoesNotExist"));
         }
 
         [Test]
@@ -151,5 +162,45 @@ namespace SERFS {
             Assert.AreEqual("Hello Serfs\r\n", s);
         }
 
+        [Test]
+        public void FilesCanBeOutsideFolders() {
+            _serfs.Mount("/");
+            string s = _serfs.Read("FileOutSideFolder.txt");
+            Assert.StartsWith("I am FileOutSideFolder", s);
+        }
+
+        [Test]
+        public void CanSpecifyAssemblyPrefixAndFolder() {
+            Assembly resources = AppDomain.CurrentDomain.Load("ResourcesForSerfsTest");
+            _serfs = new Serfs(resources, "ResourcesForSerfsTest", "Files");
+            using (Stream stream = _serfs.OpenRead("HelloSerfs.txt")) {
+                StreamReader reader = new StreamReader(stream);
+                Assert.AreEqual("Hello Serfs!", reader.ReadLine());
+            }
+        }
+
+        [Test]
+        public void CanUseDifferentDecoderForStream() {
+            _serfs.Decoder = new UpCaseDecoder();
+            using (Stream stream = _serfs.OpenRead("Test.txt")) {
+                StreamReader reader = new StreamReader(stream);
+                Assert.AreEqual("HELLO SERFS", reader.ReadLine());
+            }
+        }
+
+        [Test]
+        public void CanUseDifferentDecoderForString() {
+            _serfs.Decoder = new UpCaseDecoder();
+            string s = _serfs.Read("test.txt");
+            Assert.AreEqual("HELLO SERFS\r\n", s);
+        }
+
+        private class UpCaseDecoder : IStreamDecoder {
+            public Stream Decode(Stream stream) {
+                StreamReader reader = new StreamReader(stream);
+                string content = reader.ReadToEnd().ToUpperInvariant();
+                return new MemoryStream(Encoding.UTF8.GetBytes(content));
+            }
+        }
     }
 }

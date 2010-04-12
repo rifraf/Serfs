@@ -8,22 +8,75 @@ using System.Text.RegularExpressions;
 namespace SERFS {
 
     // ---------------------------------------------------------------------------
+    public interface IStreamDecoder {
+        Stream Decode(Stream stream);
+    }
+
+    // ---------------------------------------------------------------------------
+    internal class NullDecoder : IStreamDecoder {
+        public Stream Decode(Stream stream) {return stream;}
+    }
+
+    // ---------------------------------------------------------------------------
+    /// <summary>
+    /// Handles the resource information for a given assembly/resource prefix set
+    /// </summary>
     public class AssemblyInfo {
         private readonly Assembly _assembly;
         private readonly string[] _all_resource_names;
-        private readonly string _namespace_prefix;
+        private readonly string _resource_prefix;
+        private IStreamDecoder _decoder;
 
-        public AssemblyInfo(Assembly a) {
-            _assembly = a;
-            _all_resource_names = _assembly.GetManifestResourceNames();  // only returns files that exist
-            Array.Sort(_all_resource_names);
-            if (_all_resource_names.Length > 0) {
-                string first_name = _all_resource_names[0];
-                _namespace_prefix = first_name.Remove(first_name.IndexOf("."));
-            }
+        /// <summary>
+        /// Create an AssemblyInfo
+        /// </summary>
+        /// <param name="sourceAssembly">The assembly whose embedded resources we want</param>
+        /// <param name="resourcePrefix">The name that prefixes the files. Normally the default namespace</param>
+        /// <param name="decoder">Instance of IStreamDecoder</param>
+        public AssemblyInfo(Assembly sourceAssembly, string resourcePrefix, IStreamDecoder decoder) {
+            _assembly = sourceAssembly;
+            _resource_prefix = resourcePrefix;
+            _all_resource_names = _assembly.GetManifestResourceNames();
+            _decoder = decoder;
+            Array.Sort(_all_resource_names);    // Just to help during development. It's easier to find files in order...
         }
 
+        /// <summary>
+        /// Is this instance handling the given assembly/resource prefix
+        /// </summary>
+        /// <param name="sourceAssembly">The assembly whose embedded resources we are handling</param>
+        /// <param name="resourcePrefix">The resource prefix</param>
+        /// <returns>True iff both params match</returns>
+        public bool IsHandling(Assembly sourceAssembly, string resourcePrefix) {
+            return (_assembly == sourceAssembly) && (_resource_prefix == resourcePrefix);
+        }
+
+        private readonly List<string> _folders = new List<string>();
+        /// <summary>
+        /// Adds the name of a resource folder to act as the 'root' of the file heirarchy.
+        /// </summary>
+        /// <param name="topFolder">Name of folder. e.g. Files/Apps</param>
+        /// <returns>Returns itself so you can chain mounts.</returns>
+        public AssemblyInfo Mount(string topFolder) {
+            // Strip any leading \ or /
+            if ((topFolder[0] == '/') || (topFolder[0] == '\\')) {
+                topFolder = topFolder.Substring(1);
+            }
+            if (!_folders.Contains(topFolder)) {
+                _folders.Add(topFolder.Length == 0 ? "" : topFolder + '/');
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Scans each mounted folder to see if it contains the file described by 'path'. Opens a stream if found.
+        /// </summary>
+        /// <param name="path">The path to the file</param>
+        /// <returns>An open stream or null</returns>
         public Stream OpenRead(string path) {
+            if (_folders.Count == 0) {
+                return OpenRead("", path);  // No specific mount
+            }
             foreach (string folder in _folders) {
                 Stream stream = OpenRead(folder, path);
                 if (stream != null) {
@@ -33,75 +86,200 @@ namespace SERFS {
             return null;
         }
 
+        /// <summary>
+        /// Decoder to user when reading files
+        /// </summary>
+        public IStreamDecoder Decoder {
+            set { _decoder = value; }
+        }
+
+        /// <summary>
+        /// Scans a specific folder to see if it contains the file described by 'path'. Opens a stream if found.
+        /// </summary>
+        /// <param name="folder">The folder to check</param>
+        /// <param name="path">The path to the file</param>
+        /// <returns>An open stream or null</returns>
         public Stream OpenRead(string folder, string path) {
             string name = PathToResourceName(folder, path);
             // Do a case insensitive compare to find the resource
             foreach (string n in _all_resource_names) {
                 if (String.Compare(name, n, true, CultureInfo.InvariantCulture) == 0) {
-                    return _assembly.GetManifestResourceStream(n);
+                    return _decoder.Decode(_assembly.GetManifestResourceStream(n));
                 }
             }
             return null;
         }
 
-        private string PathToResourceName(string folder, string path) {
-            if (path.StartsWith("./") || path.StartsWith(".\\")) {
-                path = path.Substring(2);
-            }
-            string requested_path = String.Format("{0}{1}", folder, path);
-            // Normalize folder separator
-            requested_path = requested_path.Replace(@"\", "/");
-            int split_point = requested_path.LastIndexOf("/");
+        /// <summary>
+        /// Works out what the embedded file name will be for a given folder and path
+        /// </summary>
+        private string PathToResourceName(string folder, string requestedFilePath) {
+            string directory;
+            string filename;
+
+            requestedFilePath = RegularizeRequestedPath(requestedFilePath);
+            ExtractDirectoryAndFile(requestedFilePath, folder, out directory, out filename);
+
+            string foldername = PathToResourceFolderName(directory);
+            return String.Format("{0}.{1}{2}", _resource_prefix, foldername, filename);
+        }
+
+        // Split into directory and file part
+        private static void ExtractDirectoryAndFile(string requestedFilePath, string folder, out string directory, out string filename) {
+            string full_path = folder + requestedFilePath;
+            
+            // Normalize folder separators
+            full_path = full_path.Replace(@"\", "/");
+
+            // Split on final '/'
+            int split_point = full_path.LastIndexOf("/");
             if (split_point < 0) {
-                return String.Format("{0}.{1}", _namespace_prefix, requested_path);
+                directory = "";
+                filename = requestedFilePath;
+            } else {
+                directory = full_path.Remove(split_point + 1);
+                filename = full_path.Substring(split_point + 1);                
             }
+        }
+
+        private static string RegularizeRequestedPath(string requestedFilePathPath) {
+            // ./ and .\ don't mean anything to Serfs because we are always at 'root'
+            if (requestedFilePathPath.StartsWith("./") || requestedFilePathPath.StartsWith(".\\")) {
+                requestedFilePathPath = requestedFilePathPath.Substring(2);
+            }
+            return requestedFilePathPath;
+        }
+
+        private static string PathToResourceFolderName(string directory) {
+
             // Folders are dot separated and can't have spaces or '-'
-            string basic_path = requested_path.Remove(split_point);
-            string basic_filename = requested_path.Substring(split_point + 1);
-            basic_path = basic_path.Replace('/', '.').Replace(' ', '_').Replace('-', '_');
-            string adjusted_path = Regex.Replace(basic_path, @"\.(\d)", @"._$1");  // .n -> ._n
-            string recombined_path = String.Format("{0}.{1}.{2}", _namespace_prefix, adjusted_path, basic_filename);
-            return recombined_path;
-        }
+            string result = directory.Replace('/', '.').Replace(' ', '_').Replace('-', '_');
 
-        private readonly List<string> _folders = new List<string>();
-        public AssemblyInfo Mount(string topFolder) {
-            _folders.Add(topFolder.Length == 0 ? "" : topFolder + '/');
-            return this;
-        }
+            // Folders starting with numeric have _ prefixed
+            result = Regex.Replace(result, @"\.(\d)", @"._$1");
 
+            return result;
+        }
     }
 
     // ---------------------------------------------------------------------------
+    /// <summary>
+    /// Simple Embeddef Resource File System
+    /// </summary>
     public class Serfs {
         private readonly List<AssemblyInfo> _assembly_infos = new List<AssemblyInfo>();
+        private Assembly _entry_assembly;
+        private bool _ignore_missing_assemblies;
+        private IStreamDecoder _decoder;
 
+        /// <summary>
+        /// Create Serfs instance based on the embedded resource files in the
+        /// specified assembly
+        /// </summary>
+        /// <param name="assembly">The specific assembly</param>
+        /// <param name="resourcePrefix">The prefix for resources (normally the default namespace)</param>
+        /// <param name="folder">The resource folder that is to act as the root directory</param>
+        public Serfs(Assembly assembly, string resourcePrefix, string folder) {
+            InitializeInstance(assembly, resourcePrefix, folder);
+        }
+
+        /// <summary>
+        /// Create Serfs instance based on the entry assembly (main program) unless
+        /// none is reported (typically during tests), in which case use caller
+        /// </summary>
+        /// <param name="folder">The resource folder that is to act as the root directory</param>
         public Serfs(string folder) {
-            _assembly_infos.Add(new AssemblyInfo(Assembly.GetCallingAssembly()));
-            _assembly_infos[0].Mount(folder);
+            _entry_assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+            InitializeInstance(_entry_assembly, _entry_assembly.GetName().Name, folder);
         }
 
-        public AssemblyInfo Mount(string topFolder) {
-            return _assembly_infos[0].Mount(topFolder);
-        }
-
-        public AssemblyInfo AddAssembly(string name) {
-            return AddAssembly(name, String.Empty);
-        }
-
-        public AssemblyInfo AddAssembly(string name, string folder) {
-            Assembly assembly;
-            try {
-                assembly = AppDomain.CurrentDomain.Load(name);
-            } catch (FileNotFoundException) {
-                return null;
+        private void InitializeInstance(Assembly root, string resourcePrefix, string folder) {
+            _entry_assembly = root;
+            _decoder = new NullDecoder();
+            AssemblyInfo info = AddAssembly(_entry_assembly, resourcePrefix);
+            if (folder != null) {
+                info.Mount(folder);
             }
-            AssemblyInfo info = new AssemblyInfo(assembly);
-            info.Mount(folder);
+        }
+
+        /// <summary>
+        /// Decoder to user when reading files
+        /// </summary>
+        public IStreamDecoder Decoder {
+            set {
+                _decoder = value;
+                foreach (AssemblyInfo assembly_info in _assembly_infos) {
+                    assembly_info.Decoder = _decoder;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add a new assembly to the list of assemblies being tracked.
+        /// </summary>
+        /// <param name="assembly">The specific assembly</param>
+        /// <param name="resourcePrefix">The prefix for resources (normally the default namespace)</param>
+        /// <returns>AssemblyInfo describing the addition.</returns>
+        public AssemblyInfo AddAssembly(Assembly assembly, string resourcePrefix) {
+            foreach (AssemblyInfo assembly_info in _assembly_infos) {
+                if (assembly_info.IsHandling(assembly, resourcePrefix)) {
+                    return assembly_info;
+                }
+            }
+            AssemblyInfo info = new AssemblyInfo(assembly, resourcePrefix, _decoder);
             _assembly_infos.Add(info);
             return info;
         }
 
+        /// <summary>
+        /// Add a new assembly to the list of assemblies being tracked.
+        /// </summary>
+        /// <param name="assemblyName">The name of the assembly. Its resource prefix must match the default namespace</param>
+        /// <returns></returns>
+        public AssemblyInfo AddAssembly(string assemblyName) {
+            return AddAssembly(assemblyName, null);
+        }
+
+        /// <summary>
+        /// Add a new assembly to the list of assemblies being tracked.
+        /// </summary>
+        /// <param name="assemblyName">The name of the assembly.</param>
+        /// <param name="resourcePrefix">The prefix for resources (normally the default namespace)</param>
+        /// <returns></returns>
+        public AssemblyInfo AddAssembly(string assemblyName, string resourcePrefix) {
+            Assembly assembly;
+            try {
+                assembly = AppDomain.CurrentDomain.Load(assemblyName);
+            } catch (FileNotFoundException) {
+                if (_ignore_missing_assemblies) {
+                    assembly = _entry_assembly;
+                } else {
+                    return null;
+                }
+            }
+            return AddAssembly(assembly, resourcePrefix ?? assemblyName);
+        }
+
+        /// <summary>
+        /// Normally adding an assembly that cannot be found causes the add to be ignored. If,
+        /// however, we have used ILMerge, assemblies get merged into one, so we use the assembly
+        /// selected during initialization. To support this, we must set IgnoreMissingAssemblies
+        /// </summary>
+        public bool IgnoreMissingAssemblies { get { return _ignore_missing_assemblies; } set { _ignore_missing_assemblies = value; } }
+        /// <summary>
+        /// Attach a named embedded resource folder as a 'root' folder in the Serfs directory structure
+        /// More than one can be attached.
+        /// </summary>
+        /// <param name="topFolder">Name of resource folder. e.g. Files/Apps</param>
+        /// <returns></returns>
+        public AssemblyInfo Mount(string topFolder) {
+            return _assembly_infos[0].Mount(topFolder);
+        }
+
+        /// <summary>
+        /// Scan the attached assemblies and folders for the named file, returning
+        /// an opened stream if found.
+        /// </summary>
         public Stream OpenRead(string path) {
             foreach (AssemblyInfo assembly_info in _assembly_infos) {
                 Stream stream = assembly_info.OpenRead(path);
@@ -112,6 +290,10 @@ namespace SERFS {
             return null;
         }
 
+        /// <summary>
+        /// Scan the attached assemblies and folders for the named file, returning
+        /// its contents as a string if found.
+        /// </summary>
         public string Read(string path) {
             using (Stream stream = OpenRead(path)) {
                 if (stream != null) {
