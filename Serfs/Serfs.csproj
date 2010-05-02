@@ -36,6 +36,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Properties\AssemblyInfo_in.cs" />
     <Compile Include="Serfs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -47,4 +48,8 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PreBuildEvent>if exist ..\..\prebuild.bat ..\..\prebuild.bat</PreBuildEvent>
+    <PostBuildEvent>if exist ..\..\postbuild.bat ..\..\postbuild.bat</PostBuildEvent>
+  </PropertyGroup>
 </Project>

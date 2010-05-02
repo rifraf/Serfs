@@ -1,3 +1,6 @@
+.svn
+prebuild.bat
+postbuild.bat
 Serfs.4.5.resharper
 Serfs.4.5.resharper.user
 Serfs.suo

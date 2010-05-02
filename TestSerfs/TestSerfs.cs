@@ -29,6 +29,12 @@ namespace SERFS {
         }
 
         [Test]
+        public void ReadTextValidFileGetsString() {
+            string s = _serfs.ReadText("test.txt");
+            Assert.AreEqual("Hello Serfs\n", s);
+        }
+
+        [Test]
         public void OpenInvalidFileGetsNull() {
             using (Stream stream = _serfs.OpenRead("not_here_test.txt")) {
                 Assert.IsNull(stream);

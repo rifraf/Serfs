@@ -137,8 +137,13 @@ namespace SERFS {
                 directory = "";
                 filename = requestedFilePath;
             } else {
-                directory = full_path.Remove(split_point + 1);
-                filename = full_path.Substring(split_point + 1);                
+                if (split_point + 1 == full_path.Length) {
+                    directory = full_path;
+                    filename = "";
+                } else {
+                    directory = full_path.Remove(split_point + 1);
+                    filename = full_path.Substring(split_point + 1);
+                }
             }
         }
 
@@ -303,5 +308,20 @@ namespace SERFS {
             }
             return null;
         }
+
+        /// <summary>
+        /// Scan the attached assemblies and folders for the named file, returning
+        /// its contents as a string if found. \r\n is converted to \n
+        /// </summary>
+        public string ReadText(string path) {
+            using (Stream stream = OpenRead(path)) {
+                if (stream != null) {
+                    StreamReader reader = new StreamReader(stream);
+                    return reader.ReadToEnd().Replace("\r\n", "\n");
+                }
+            }
+            return null;
+        }
+
     }
 }
