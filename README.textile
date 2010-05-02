@@ -2,17 +2,16 @@ h1. Serfs
 
 (More detail on the Wiki pages)
 
-Serfs is a "Simple Embedded Resource File System" for .Net
+Serfs is a *Simple Embedded Resource File System* for .Net
 
 Embedded resources are files in a .Net Assembly which have their Build Action Property set to *Embedded Resource*. They can be placed in a directory-like structure.
 
 Serfs provides simple read-only access to such files in a way similar to reading files from disk. 
 
-e.g. <pre>
-  Stream stream = serfs.OpenRead("files/test.txt")
+e.g. <pre><code>  Stream stream = serfs.OpenRead("files/test.txt")
   string sb = serfs.Read("./test.txt");
   string st = serfs.ReadText("test.txt");
-</pre>
+</code></pre>
 
 You can tell Serfs which assemblies contain files, and which files to include. The files are merged into one collection so that they can be accessed as one _virtual disk_. You can create as many virtual disks as you like - just create separate instances.
 
