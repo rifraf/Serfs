@@ -4,40 +4,33 @@ h1. Serfs
 
 Serfs is a "Simple Embedded Resource File System" for .Net
 
-Embedded resources are files that are built in to a .Net Assembly whose Build Action Property 
-is set to 'Embedded Resource'. They can be placed in a directory-like structure.
+Embedded resources are files that are built in to a .Net Assembly whose Build Action Property is set to 'Embedded Resource'. They can be placed in a directory-like structure.
 
-Serfs provides simple read-only access to such files in a way similar to reading files from
-disk. 
+Serfs provides simple read-only access to such files in a way similar to reading files from disk. 
 
 e.g. 
-
+<pre>
 	Stream stream = _serfs.OpenRead("files/test.txt")
 	string sb = _serfs.Read("./test.txt");
 	string st = _serfs.ReadText("test.txt");
+</pre>
 
-You can tell Serfs which assemblies to get files from, and which set of files to select. When you
-then try to access files, they appear to be merged into one collection, regardless of the
-assembly they are in. 
+You can tell Serfs which assemblies to get files from, and which set of files to select. When you then try to access files, they appear to be merged into one collection, regardless of the assembly they are in. 
 
 If you want to separate files into different logical disks, just create separate instances.
 
 Paths and file names are case-insensitive.
 
-The quickest way to explore what Serfs can do is to look at the unit tests in
-TestSerfs/TestSerfs.cs.
+The quickest way to explore what Serfs can do is to look at the unit tests in @TestSerfs/TestSerfs.cs@.
 
 h2. Security
 
-Files can be optionally encoded before you compile the assembly, so you can avoid
-shipping sensitive information in plain-text. You then supply a decode routine to
-Serfs, and it will perform the decode on the fly.
+Files can be optionally encoded before you compile the assembly, so you can avoid shipping sensitive information in plain-text. You then supply a decode routine to
+Serfs, and it will perform the decode on the fly. 
 
 h2. Restrictions
 
-Although Serfs uses a traditional 'folder/filename' or 'folder\filename' path convention, embedded 
-resources are actually stored with '.' separators. There are other name adjustments too, such as
-spaces and '-' being as '_'. 
+Although Serfs uses a traditional @folder/filename@ or @folder\filename@ path convention, embedded resources are actually stored with '.' separators. There are other name adjustments too, such as spaces and '-' being as '_'. 
 
 Serfs will try to find the correct file, but it won't be able to differentiate between, say, @A file@ and @A_file@
 
@@ -45,6 +38,6 @@ h2. Contents
 
 This repository contains 3 projects:
 
-# Serfs : The core Serfs dll.
-# TestSerfs : Tests for Serfs. Uses Gallio / MbUnit. Can be used as a reference for the API.
-# ResourcesForSerfsTest : A DLL containing no code, just embedded resources for TestSerfs.
+# *Serfs* : The core Serfs dll.
+# *TestSerfs* : Tests for Serfs. Uses Gallio / MbUnit. Can be used as a reference for the API.
+# *ResourcesForSerfsTest* : A DLL containing no code, just embedded resources for TestSerfs.
