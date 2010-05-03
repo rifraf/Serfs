@@ -208,5 +208,25 @@ namespace SERFS {
                 return new MemoryStream(Encoding.UTF8.GetBytes(content));
             }
         }
+
+        [Test]
+        public void CanCheckIfFileExists() {
+            Assert.IsTrue(_serfs.Exists(".\\test.txt"));
+            Assert.IsFalse(_serfs.Exists(".\\test.text"));
+            Assert.IsTrue(_serfs.Exists("/test.txt"));            
+        }
+
+        [Test]
+        public void CanCheckIfFolderExists() {
+            Assert.IsTrue(_serfs.FolderExists(".\\"));
+            Assert.IsFalse(_serfs.FolderExists(".\\test.txt"));
+            Assert.IsTrue(_serfs.FolderExists("/"));
+            Assert.IsFalse(_serfs.FolderExists("/test.txt"));
+            Assert.IsTrue(_serfs.FolderExists("/1.2.3"));
+            Assert.IsTrue(_serfs.FolderExists("1.2.3"));
+            Assert.IsTrue(_serfs.FolderExists("\\A folder with . and spaces"));
+            Assert.IsTrue(_serfs.FolderExists("A folder with . and spaces"));            
+        }
+
     }
 }

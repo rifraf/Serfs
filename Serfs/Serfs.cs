@@ -100,14 +100,80 @@ namespace SERFS {
         /// <param name="path">The path to the file</param>
         /// <returns>An open stream or null</returns>
         public Stream OpenRead(string folder, string path) {
+            string name = FindResourceName(folder, path);
+            return (name == null) ? null : _decoder.Decode(_assembly.GetManifestResourceStream(name));
+        }
+
+        /// <summary>
+        /// Find the name of the embedded resource that contains the file requested
+        /// </summary>
+        /// <param name="folder">The folder to check</param>
+        /// <param name="path">The path to the file</param>
+        /// <returns>A name or null</returns>
+        public string FindResourceName(string folder, string path) {
             string name = PathToResourceName(folder, path);
             // Do a case insensitive compare to find the resource
             foreach (string n in _all_resource_names) {
                 if (String.Compare(name, n, true, CultureInfo.InvariantCulture) == 0) {
-                    return _decoder.Decode(_assembly.GetManifestResourceStream(n));
+                    return n;
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Find the name of the embedded resource that contains the file requested
+        /// </summary>
+        /// <param name="path">The full path to the file</param>
+        /// <returns>A name or null</returns>
+        public string FindResourceName(string path) {
+            if (_folders.Count == 0) {
+                return FindResourceName("", path);  // No specific mount
+            }
+            foreach (string folder in _folders) {
+                string name = FindResourceName(folder, path);
+                if (name != null) {
+                    return name;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// See if the folder exists
+        /// </summary>
+        /// <param name="folder">The folder to check</param>
+        /// <param name="path">The path</param>
+        public bool FolderExists(string folder, string path) {
+            if (!path.EndsWith("/") && !path.EndsWith("\\")) {
+                path = path + '/';
+            }
+            string name = PathToResourceName(folder, path);
+            // Do a case insensitive compare to find the resource
+            foreach (string n in _all_resource_names) {
+                if (n.StartsWith(name, true, CultureInfo.InvariantCulture)) {
+                    //if ((String.Compare(name, n, true, CultureInfo.InvariantCulture) != 0)) {   // Files don't match
+                        return true;
+                    //}
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// See if the folder exists
+        /// </summary>
+        /// <param name="path">The path</param>
+        public bool FolderExists(string path) {
+            if (_folders.Count == 0) {
+                return FolderExists("", path);
+            }
+            foreach (string folder in _folders) {
+                if (FolderExists(folder, path)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -148,9 +214,12 @@ namespace SERFS {
         }
 
         private static string RegularizeRequestedPath(string requestedFilePathPath) {
-            // ./ and .\ don't mean anything to Serfs because we are always at 'root'
+            // /, ./, \ and .\ don't mean anything to Serfs because we are always at 'root'
             if (requestedFilePathPath.StartsWith("./") || requestedFilePathPath.StartsWith(".\\")) {
                 requestedFilePathPath = requestedFilePathPath.Substring(2);
+            }
+            if (requestedFilePathPath.StartsWith("/") || requestedFilePathPath.StartsWith("\\")) {
+                requestedFilePathPath = requestedFilePathPath.Substring(1);
             }
             return requestedFilePathPath;
         }
@@ -293,6 +362,32 @@ namespace SERFS {
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Scan the attached assemblies and folders for the named file, returning
+        /// true iff found.
+        /// </summary>
+        public bool Exists(string path) {
+            foreach (AssemblyInfo assembly_info in _assembly_infos) {
+                if (assembly_info.FindResourceName(path) != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Scan the attached assemblies and folders for the named folder, returning
+        /// true iff found.
+        /// </summary>
+        public bool FolderExists(string path) {
+            foreach (AssemblyInfo assembly_info in _assembly_infos) {
+                if (assembly_info.FolderExists(path)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
