@@ -36,3 +36,9 @@ This repository contains 3 projects:
 # *Serfs* : The core Serfs dll.
 # *TestSerfs* : Tests for Serfs. Uses Gallio / MbUnit. Can be used as a reference for the API.
 # *ResourcesForSerfsTest* : A DLL containing no code, just embedded resources for TestSerfs.
+
+h2. License
+
+Copyright (c) 2010 David Lake (rifraf -> rifraf.net)
+
+Released under the MIT license. See LICENSE file for details.
