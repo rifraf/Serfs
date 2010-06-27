@@ -152,9 +152,7 @@ namespace SERFS {
             // Do a case insensitive compare to find the resource
             foreach (string n in _all_resource_names) {
                 if (n.StartsWith(name, true, CultureInfo.InvariantCulture)) {
-                    //if ((String.Compare(name, n, true, CultureInfo.InvariantCulture) != 0)) {   // Files don't match
-                        return true;
-                    //}
+                    return true;
                 }
             }
             return false;
@@ -174,6 +172,31 @@ namespace SERFS {
                 }
             }
             return false;
+        }
+
+        internal void AddResourceNames(string folder, string baseName, ref List<string> names) {
+            // We need to form a prefix that represents the root of the folder/baseName
+            // but in the correct embedded resource form
+            if (!baseName.EndsWith("/") && !baseName.EndsWith("\\")) {
+                baseName = baseName + '/';
+            }
+            string pattern = PathToResourceName(folder, baseName + "*");
+            string prefix = pattern.Remove(pattern.Length - 1);
+            int prefix_length = prefix.Length;
+            foreach (string n in _all_resource_names) {
+                if (n.StartsWith(prefix, true, CultureInfo.InvariantCulture)) {
+                    names.Add(n.Substring(prefix_length));
+                }
+            }            
+        }
+
+        internal void AddResourceNames(string baseName, ref List<string> names) {
+            if (_folders.Count == 0) {
+                AddResourceNames("", baseName, ref names);  // No specific mount
+            }
+            foreach (string folder in _folders) {
+                AddResourceNames(folder, baseName, ref names);
+            }
         }
 
         /// <summary>
@@ -238,7 +261,7 @@ namespace SERFS {
 
     // ---------------------------------------------------------------------------
     /// <summary>
-    /// Simple Embeddef Resource File System
+    /// Simple Embedded Resource File System
     /// </summary>
     public class Serfs {
         private readonly List<AssemblyInfo> _assembly_infos = new List<AssemblyInfo>();
@@ -388,6 +411,29 @@ namespace SERFS {
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Get a list of the embedded resource files that are accessible from '/'
+        /// The names are *internal resource names*, so have '.' separators and
+        /// may have other escape characters
+        /// </summary>
+        public string[] ResourceNames() {
+            return ResourceNames("/");
+        }
+
+        /// <summary>
+        /// Get a list of the embedded resource files that are accessible from a
+        /// given root folder.
+        /// The names are *internal resource names*, so have '.' separators and
+        /// may have other escape characters
+        /// </summary>
+        public string[] ResourceNames(string baseName) {
+            List<string> names = new List<string>();
+            foreach (AssemblyInfo assembly_info in _assembly_infos) {
+                assembly_info.AddResourceNames(baseName, ref names);
+            }
+            return names.ToArray();
         }
 
         /// <summary>

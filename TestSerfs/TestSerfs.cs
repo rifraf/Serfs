@@ -225,8 +225,40 @@ namespace SERFS {
             Assert.IsTrue(_serfs.FolderExists("/1.2.3"));
             Assert.IsTrue(_serfs.FolderExists("1.2.3"));
             Assert.IsTrue(_serfs.FolderExists("\\A folder with . and spaces"));
-            Assert.IsTrue(_serfs.FolderExists("A folder with . and spaces"));            
+            Assert.IsTrue(_serfs.FolderExists("A folder with . and spaces"));
         }
 
+        [Test]
+        public void CanGetAllResourceNames() {
+            _serfs.AddAssembly("ResourcesForSerfsTest", "ResourcesForSerfsTest").Mount("Files");
+            string[] resources = _serfs.ResourceNames();
+
+            Assert.AreEqual(5, resources.Length);
+            Assert.Contains(resources, "test.txt");
+            Assert.Contains(resources, "HelloSerfs.txt");
+            Assert.Contains(resources, "_1._2._3.test.txt");
+        }
+
+        [Test]
+        public void CanGetResourceNameSubset() {
+            _serfs.AddAssembly("ResourcesForSerfsTest", "ResourcesForSerfsTest").Mount("Files");
+
+            string[] resources = _serfs.ResourceNames("A folder with . and spaces");
+            Assert.AreEqual(2, resources.Length);
+            Assert.Contains(resources, "404.txt");
+            Assert.Contains(resources, "A file with . and spaces.txt");
+
+            resources = _serfs.ResourceNames("/A folder with . and spaces");
+            Assert.AreEqual(2, resources.Length);
+            Assert.Contains(resources, "404.txt");
+            Assert.Contains(resources, "A file with . and spaces.txt");
+
+            resources = _serfs.ResourceNames("\\A folder with . and spaces");
+            Assert.AreEqual(2, resources.Length);
+            Assert.Contains(resources, "404.txt");
+            Assert.Contains(resources, "A file with . and spaces.txt");
+
+        }
     }
 }
+
