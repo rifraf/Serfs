@@ -1,19 +1,12 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Permissions;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Serfs")]
-[assembly: AssemblyDescription("Simple Embedded Resource File System. http://github.com/rifraf/Serfs")]
-#if DEBUG
-[assembly: AssemblyConfiguration("Debug")]
-#elif BETA
-[assembly: AssemblyConfiguration("Beta")]
-#else
+[assembly: AssemblyTitle("TestSerfs")]
+[assembly: AssemblyDescription("Tests for Serfs")]
 [assembly: AssemblyConfiguration("")]
-#endif
 [assembly: AssemblyCompany("djlSoft")]
 [assembly: AssemblyProduct("Serfs")]
 [assembly: AssemblyCopyright("Copyright David Lake © 2010")]
@@ -26,8 +19,16 @@ using System.Security.Permissions;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("91cc985f-1a81-4ca4-a777-b08b4b88bb7f")]
+[assembly: Guid("f2484a5c-33f0-4a40-b22d-1e136dca53d7")]
 
-[assembly: AssemblyVersion("0.1.0.11558")]
-[assembly: AssemblyFileVersion("0.1.0.11558")]
-[assembly: AssemblyInformationalVersionAttribute("0.1.0.11558")]
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Revision and Build Numbers 
+// by using the '*' as shown below:
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]

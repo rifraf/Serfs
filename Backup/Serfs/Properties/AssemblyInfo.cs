@@ -31,3 +31,4 @@ using System.Security.Permissions;
 [assembly: AssemblyVersion("0.1.0.11558")]
 [assembly: AssemblyFileVersion("0.1.0.11558")]
 [assembly: AssemblyInformationalVersionAttribute("0.1.0.11558")]
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, Execution = true)]
