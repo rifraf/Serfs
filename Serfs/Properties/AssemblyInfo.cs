@@ -16,7 +16,7 @@ using System.Security.Permissions;
 #endif
 [assembly: AssemblyCompany("djlSoft")]
 [assembly: AssemblyProduct("Serfs")]
-[assembly: AssemblyCopyright("Copyright David Lake © 2010")]
+[assembly: AssemblyCopyright("Copyright David Lake © 2010-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -25,9 +25,6 @@ using System.Security.Permissions;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("91cc985f-1a81-4ca4-a777-b08b4b88bb7f")]
-
-[assembly: AssemblyVersion("0.1.0.11558")]
-[assembly: AssemblyFileVersion("0.1.0.11558")]
-[assembly: AssemblyInformationalVersionAttribute("0.1.0.11558")]
+[assembly: AssemblyVersion("0.2.0.30912")]
+[assembly: AssemblyFileVersion("0.2.0.30912")]
+[assembly: AssemblyInformationalVersionAttribute("0.2.0.30912")]

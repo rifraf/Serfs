@@ -146,7 +146,7 @@ namespace SERFS {
         /// <param name="path">The path</param>
         public bool FolderExists(string folder, string path) {
             if (!path.EndsWith("/") && !path.EndsWith("\\")) {
-                path = path + '/';
+                path += '/';
             }
             string name = PathToResourceName(folder, path);
             // Do a case insensitive compare to find the resource
@@ -178,7 +178,7 @@ namespace SERFS {
             // We need to form a prefix that represents the root of the folder/baseName
             // but in the correct embedded resource form
             if (!baseName.EndsWith("/") && !baseName.EndsWith("\\")) {
-                baseName = baseName + '/';
+                baseName += '/';
             }
             string pattern = PathToResourceName(folder, baseName + "*");
             string prefix = pattern.Remove(pattern.Length - 1);
@@ -203,11 +203,8 @@ namespace SERFS {
         /// Works out what the embedded file name will be for a given folder and path
         /// </summary>
         private string PathToResourceName(string folder, string requestedFilePath) {
-            string directory;
-            string filename;
-
             requestedFilePath = RegularizeRequestedPath(requestedFilePath);
-            ExtractDirectoryAndFile(requestedFilePath, folder, out directory, out filename);
+            ExtractDirectoryAndFile(requestedFilePath, folder, out var directory, out var filename);
 
             string foldername = PathToResourceFolderName(directory);
             return String.Format("{0}.{1}{2}", _resource_prefix, foldername, filename);
